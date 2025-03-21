@@ -23,8 +23,8 @@ const client = new MongoClient(uri, {
 
 async function run() {
   try {
-    // auth related api
     // all collection
+    const usersCollection = client.db("nextgen-ecommarce").collection("users");
     // token genarate
     app.post("/jwt", async (req, res) => {
       const user = req.body;
@@ -33,6 +33,57 @@ async function run() {
       });
       //   console.log("token", token);
       res.send({ token });
+    });
+    // user svaed database and updated user
+    app.put("/users", async (req, res) => {
+      const user = req.body;
+      //   console.log(user);
+      const query = { email: user?.email };
+      //   console.log(query);
+      // Check if the user exists
+      const isExist = await usersCollection.findOne(query);
+      if (isExist) {
+        return res.send(isExist);
+      } else {
+        const options = { upsert: true };
+        const updateDoc = {
+          $set: {
+            ...user,
+            timestamp: Date.now(),
+          },
+        };
+        const result = await usersCollection.updateOne(
+          query,
+          updateDoc,
+          options
+        );
+        res.send(result);
+      }
+    });
+    // get all users
+    app.get("/users", async (req, res) => {
+      const result = await usersCollection.find().toArray();
+      res.send(result);
+    });
+    // admin role chack
+    app.get("/user/:email", async (req, res) => {
+      const user = req.body;
+      //   console.log(user);
+      const email = req.params.email;
+      const query = { email };
+      //   console.log(query);
+      const result = await usersCollection.findOne(query);
+      res.send(result);
+    });
+
+    // user role update
+    app.patch("/user/update/:email", async (req, res) => {
+      const user = req.body;
+      const email = req.params.email;
+      const query = { email };
+      const updateDoc = { $set: { ...user, timestamp: Date.now() } };
+      const result = await usersCollection.updateOne(query, updateDoc);
+      res.send(result);
     });
 
     // Send a ping to confirm a successful connection
