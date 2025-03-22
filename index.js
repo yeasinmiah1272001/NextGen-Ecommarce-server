@@ -25,6 +25,9 @@ async function run() {
   try {
     // all collection
     const usersCollection = client.db("nextgen-ecommarce").collection("users");
+    const productCollection = client
+      .db("nextgen-ecommarce")
+      .collection("product");
     // token genarate
     app.post("/jwt", async (req, res) => {
       const user = req.body;
@@ -86,6 +89,19 @@ async function run() {
       res.send(result);
     });
 
+    // product add
+    app.post("/addproduct", async (req, res) => {
+      const product = req.body;
+      // console.log("product", product);
+      const result = await productCollection.insertOne(product);
+      // console.log("result", result);
+      res.send(result);
+    });
+
+    app.get("/allproduct", async (req, res) => {
+      const result = await productCollection.find().toArray();
+      res.send(result);
+    });
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
     console.log(
