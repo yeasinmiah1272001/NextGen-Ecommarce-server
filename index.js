@@ -6,6 +6,7 @@ const cookieParser = require("cookie-parser");
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 const jwt = require("jsonwebtoken");
 const port = process.env.PORT || 8000;
+const stripe = require("stripe")(process.env.STRIPE_SECRET);
 
 // middleware
 app.use(cors());
@@ -28,6 +29,9 @@ async function run() {
     const productCollection = client
       .db("nextgen-ecommarce")
       .collection("product");
+    const paymentCollection = client
+      .db("nextgen-ecommarce")
+      .collection("payments");
     // token genarate
     app.post("/jwt", async (req, res) => {
       const user = req.body;
@@ -107,6 +111,37 @@ async function run() {
       const query = { _id: new ObjectId(id) };
       const result = await productCollection.findOne(query);
       res.send(result);
+    });
+
+    // Payment endpoint
+    app.post("/create-payment-intent", async (req, res) => {
+      const { totalPrice } = req.body;
+
+      try {
+        const paymentIntent = await stripe.paymentIntents.create({
+          amount: Math.round(totalPrice * 100), // Convert to cents
+          currency: "usd",
+          payment_method_types: ["card"],
+        });
+
+        res.send({
+          clientSecret: paymentIntent.client_secret,
+        });
+      } catch (error) {
+        res.status(500).send({ error: error.message });
+      }
+    });
+
+    // Save payment details
+    app.post("/save-payment", async (req, res) => {
+      const paymentData = req.body;
+
+      try {
+        const result = await paymentCollection.insertOne(paymentData);
+        res.status(200).send(result);
+      } catch (error) {
+        res.status(500).send({ error: error.message });
+      }
     });
 
     // Send a ping to confirm a successful connection
