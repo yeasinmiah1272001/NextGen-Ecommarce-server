@@ -113,6 +113,39 @@ async function run() {
       res.send(result);
     });
 
+    // review
+    app.put("/review/:id", async (req, res) => {
+      const { id } = req.params;
+      // console.log("id", id);
+      const { review, name, image } = req.body;
+      // console.log("body", req.body);
+
+      try {
+        const filter = { _id: new ObjectId(id) };
+        const updateDoc = {
+          $push: {
+            reviews: { review, name, image, date: new Date() },
+          },
+        };
+        const options = { upsert: true }; // Create a document if it doesn't exist
+
+        const result = await productCollection.updateOne(
+          filter,
+          updateDoc,
+          options
+        );
+
+        res.status(200).send({
+          success: true,
+          message: "Review added successfully!",
+          result,
+        });
+      } catch (error) {
+        console.error("Error adding/updating review:", error);
+        res.status(500).send({ error: "Failed to add/update review." });
+      }
+    });
+
     // Payment endpoint
     app.post("/create-payment-intent", async (req, res) => {
       const { totalPrice } = req.body;
@@ -141,6 +174,24 @@ async function run() {
         res.status(200).send(result);
       } catch (error) {
         res.status(500).send({ error: error.message });
+      }
+    });
+
+    // get by email payment
+    app.get("/paymenthistory/:email", async (req, res) => {
+      const email = req.params.email;
+      // console.log("email", email);
+      const query = { "userInfo.email": email };
+      // console.log("query", query);
+
+      try {
+        const result = await paymentCollection.find(query).toArray();
+        // console.log(result);
+        res.send(result);
+      } catch (error) {
+        res
+          .status(500)
+          .send({ message: "Error retrieving payment history", error });
       }
     });
 
