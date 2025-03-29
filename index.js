@@ -194,6 +194,13 @@ async function run() {
           .send({ message: "Error retrieving payment history", error });
       }
     });
+    // order cancel
+    app.delete("/order/cancel/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await paymentCollection.deleteOne(query);
+      res.send(result);
+    });
 
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
