@@ -194,6 +194,11 @@ async function run() {
           .send({ message: "Error retrieving payment history", error });
       }
     });
+    // get all payment
+    app.get("/paymenthistory", async (req, res) => {
+      const result = await paymentCollection.find().toArray();
+      res.send(result);
+    });
     // order cancel
     app.delete("/order/cancel/:id", async (req, res) => {
       const id = req.params.id;
