@@ -212,6 +212,14 @@ async function run() {
       const result = await paymentCollection.deleteOne(query);
       res.send(result);
     });
+    app.get("/admin-state", async (req, res) => {
+      const user = await usersCollection.estimatedDocumentCount();
+      const totalOrder = await paymentCollection.estimatedDocumentCount();
+      const result = await paymentCollection.find().toArray();
+      const renevue = result.reduce((acc, item) => acc + item.totalPrice, 0);
+
+      res.send({ user, totalOrder, renevue });
+    });
 
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
