@@ -10,10 +10,7 @@ const stripe = require("stripe")(process.env.STRIPE_SECRET);
 
 // middleware
 const corsOptions = {
-  origin: [
-    "http://localhost:5173",
-    "https://nextgen-e-commarce-client.vercel.app",
-  ],
+  origin: ["http://localhost:5173", "https://nextgen-ecomarce.vercel.app"],
   credentials: true,
   optionSuccessStatus: 200,
 };
